@@ -1,0 +1,89 @@
+#!/usr/bin/perl
+#
+# Updates one or all repositories
+#
+
+use strict;
+use warnings;
+use Cwd;
+
+my $base = $ARGV[0];
+my $quiet = $ENV{SILENT};
+
+usage() unless $base && -d $base;
+
+# List of mirrored repositories to update
+my @repos;
+
+if (-d "$base/.git") {
+  push @repos, $base;
+}
+else {
+  @repos = collect_all_git_repos($base);
+}
+
+my $cwd = getcwd();
+
+REPO:
+foreach my $repo_spec (@repos) {
+  my ($repo, $dir) = @$repo_spec;
+  logger("Mirroring repo '$repo'");
+
+  if (!chdir($cwd)) {
+    logger("Skipping all repos, failed to establish cwd in '$cwd': $!");
+    last REPO;
+  }
+
+  if (!chdir($dir)) {
+    logger("Skipping repo '$repo' in '$dir': $!");
+    next REPO;
+  }
+
+  logger("Fetchching from svn with git-svn");
+  system('/usr/local/git/bin/git', 'svn', 'rebase');
+
+  logger("Pushing to git remote origin");
+  system('/usr/local/git/bin/git', 'push');
+
+  logger("Done repo '$repo'");
+}
+
+
+### Utils
+
+sub collect_all_git_repos {
+  my ($base) = @_;
+  my @found;
+
+  logger("Scanning $base for git repos to mirror");
+  
+  opendir(BASE, $base) || die "Could not open dir '$base' for read: $!\n";
+  while (my $d = readdir(BASE)) {
+    next if $d =~ /^[.]/;
+
+    my $full = join('/', $base, $d);
+    if (! -d $full) {
+      logger("Skipping '$d', not a directory");
+      next;
+    }
+
+    my $git  = join('/', $base, $d, '.git');
+    if (! -d $git) {
+      logger("Skipping '$d', not a git repo");
+      next;
+    }
+       
+    logger("Found git repo '$d'");
+    push @found, [$d, $full];
+  }
+  closedir(BASE);
+
+  logger("Found ".@found." repos in '$base'");
+  return @found;
+}
+
+sub logger {
+  my $mesg = join('', @_);
+  print STDERR "[log] $mesg\n" unless $quiet;
+}
+

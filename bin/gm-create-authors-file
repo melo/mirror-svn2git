@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $repo = $ARGV[0] || '';
+
+my $svn_log;
+if (!open($svn_log, '-|', "svn log $repo")) {
+  print <<EOM;
+FATAL: could not run svn log command:
+  svn log $repo
+EOM
+  exit(1);
+}
+
+my %authors;
+
+while (<$svn_log>) {
+  next unless /^r\d+\s+\|\s+(\S+)/;
+  $authors{$1}++;
+}
+close($svn_log);
+
+foreach my $author (sort keys %authors) {
+  print "$author\n";
+}
+
