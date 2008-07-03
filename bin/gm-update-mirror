@@ -34,8 +34,8 @@ foreach my $repo_spec (@repos) {
     last REPO;
   }
 
-  if (!chdir($dir)) {
-    logger("Skipping repo '$repo' in '$dir': $!");
+  if (!chdir("$dir/workdir")) {
+    logger("Skipping repo '$repo' in '$dir/workdir': $!");
     next REPO;
   }
 
@@ -67,7 +67,7 @@ sub collect_all_git_repos {
       next;
     }
 
-    my $git  = join('/', $base, $d, '.git');
+    my $git  = join('/', $base, $d, 'workdir', '.git');
     if (! -d $git) {
       logger("Skipping '$d', not a git repo");
       next;
