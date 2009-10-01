@@ -15,8 +15,8 @@ usage() unless $base && -d $base;
 # List of mirrored repositories to update
 my @repos;
 
-if (-d "$base/.git") {
-  push @repos, $base;
+if (-d "$base/workdir/.git") {
+  push @repos, [$base, $base];
 }
 else {
   @repos = collect_all_git_repos($base);
