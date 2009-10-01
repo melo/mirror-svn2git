@@ -17,7 +17,7 @@ EOM
 my %authors;
 
 while (<$svn_log>) {
-  next unless /^r\d+\s+\|\s+(\S+)/;
+  next unless /^r\d+\s+[|]\s+(.+?)\s+[|]/;
   $authors{$1}++;
 }
 close($svn_log);
