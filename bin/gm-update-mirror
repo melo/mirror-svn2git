@@ -66,6 +66,11 @@ sub collect_all_git_repos {
       logger("Skipping '$d', not a directory");
       next;
     }
+    
+    if (-e join('/', $full, 'skip')) {
+      logger("Skipping repository '$d', skip file is present");
+      next;
+    }
 
     my $git  = join('/', $base, $d, 'workdir', '.git');
     if (! -d $git) {
