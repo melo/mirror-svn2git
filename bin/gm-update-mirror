@@ -40,10 +40,10 @@ foreach my $repo_spec (@repos) {
   }
 
   logger("Fetchching from svn with git-svn");
-  system('/usr/local/git/bin/git', 'svn', 'rebase');
+  output(`/usr/local/git/bin/git svn rebase 2>&1`);
 
   logger("Pushing to git remote origin");
-  system('/usr/local/git/bin/git', 'push');
+  output(`/usr/local/git/bin/git push 2>&1`);
 
   logger("Done repo '$repo'");
 }
@@ -87,8 +87,24 @@ sub collect_all_git_repos {
   return @found;
 }
 
-sub logger {
+sub output {
   my $mesg = join('', @_);
-  print STDERR "[log] $mesg\n" unless $quiet;
+  if ($mesg =~ /up.to.date/) {
+    logger($mesg);
+  }
+  else {
+    out($mesg);
+  }
 }
 
+sub logger {
+  return if $quiet;
+  
+  out(@_);
+}
+
+sub out {
+  foreach my $line (split(/\r?\n/, join('', @_))) {
+    print STDERR "[log] $line\n";
+  }
+}
