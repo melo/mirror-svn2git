@@ -8,7 +8,7 @@ use warnings;
 use Cwd;
 
 my $base = $ARGV[0];
-my $quiet = $ENV{SILENT};
+my $quiet = $ENV{SILENT} || ! -t \*STDOUT;
 
 usage() unless $base && -d $base;
 
